@@ -121,6 +121,7 @@ void onReceive(CAN_Message Message)
 {
 	if (Message.Bus == CAN_1)
 	{
+		// Wheel speeds - retransmit for Haltech.  SPI x 4
 		if (Message.arbitration_id == 0xCE)
 		{
 			// Signal: V_WHL_FLH
@@ -140,6 +141,7 @@ void onReceive(CAN_Message Message)
 			V_WHL_RRH = process_float_value(((uint32_t)Message.data[7] << 8) | (uint32_t)Message.data[6], 0xFFFF, true, 0.0625, 0, 3);
 		}
 
+		// System states - Retransmit BRP for Haltech and everything for AIM. AVI x 1
 		if (Message.arbitration_id == 0x19E)
 		{
 			// Signal: ST_CLCTR
@@ -163,6 +165,7 @@ void onReceive(CAN_Message Message)
 			BRP = process_raw_value((uint32_t)Message.data[6], 0xFF);
 		}
 
+		// Vehicle speed, gforce, yaw - retransmit to Haltech. AVI x 3
 		if (Message.arbitration_id == 0x1A0)
 		{
 			// Signal: V_VEH
@@ -182,6 +185,7 @@ void onReceive(CAN_Message Message)
 			ANGV_YAW_DSC = process_float_value(((uint32_t)Message.data[6] << 8) | (uint32_t)Message.data[5], 0xFFF, true, 0.05, 0, 3);
 		}
 
+		// Brake pressure - retransmit for Haltech
 		if (Message.arbitration_id == 0x2B2)
 		{
 			// Signal: BRP_WHL_FLH
@@ -201,6 +205,7 @@ void onReceive(CAN_Message Message)
 			BRP_WHL_RRH = process_raw_value((uint32_t)Message.data[3], 0xFF);
 		}
 
+		// Wheel tolerance, retransmit for AIM
 		if (Message.arbitration_id == 0x374)
 		{
 			// Signal: WHL_TOL_FLH
@@ -228,10 +233,8 @@ void onReceive(CAN_Message Message)
 	// Haltech / AIM on CAN 2
 	if (Message.Bus == CAN_2)
 	{
-	}
-
-	if (Message.Bus == CAN_3)
-	{
+		// There are Haltech messages for swapping CAN ID or request reset, along with expected replies
+		// but I think we're fine to ignore them.  AIM isn't sending anything.
 	}
 }
 
@@ -268,6 +271,8 @@ void events_50Hz()
 /* Run 20Hz Functions here */
 void events_20Hz()
 {
+	haltechSendAviData();
+	haltechSendSpiData();
 }
 
 /* Run 10Hz Functions here */
@@ -283,12 +288,12 @@ void events_5Hz()
 /* Run 2Hz Functions here */
 void events_2Hz()
 {
+	haltechSendKeepAlive();
 }
 
 /* Run 1Hz Functions here */
 void events_1Hz()
 {
-	haltechSendKeepAlive();
 }
 
 /* Run Shutdown Functions here */
@@ -299,23 +304,44 @@ void events_Shutdown()
 void haltechSendKeepAlive()
 {
 	/*
+		2hz
+		PD16 A: 0x6D5
+		PD16 B: 0x6DD
+		PD16 C: 0x6E5
+		PD16 D: 0x6ED
+
 		0:7 - 0:4 => Status (1 = In Firmware)
 		0:3 => USB Connected (0 = False)
 		0:1 => ID Conflict (0 = False)
-
 		1:7 - 1:3 => Boot Version (0)
 		1:1 - 1:0 => Firmware Major Version (1)
-
 		2:7 - 2:0 => Firmware Minor Version (42)
-
 		3:7 - 3:0 => Firmware Bugfix Version (0)
-
 		4:7 - 4:0 => Firmware Release Version (0)
 	*/
 	uint8_t keepAliveMessage = {0X10, 0x01, 0x2A, 0x00, 0x00, 0x00, 0x00, 0x00};
-
-	// PD16 A
 	send_message(CAN_2, false, 0x6D5, 8, keepAliveMessage);
-	// PD16 B
 	send_message(CAN_2, false, 0x6DD, 8, keepAliveMessage);
+}
+
+void haltechSendAviData()
+{
+	/*
+		20hz
+		PD16 A: 0x6D3
+		PD16 B: 0x6DB
+		PD16 C: 0x6E3
+		PD16 D: 0x6EB
+	*/
+}
+
+void haltechSendSpiData()
+{
+	/*
+		20hz
+		PD16 A: 0x6D3
+		PD16 B: 0x6DB
+		PD16 C: 0x6E3
+		PD16 D: 0x6EB
+	*/
 }
