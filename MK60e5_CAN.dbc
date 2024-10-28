@@ -1,0 +1,152 @@
+VERSION ""
+
+
+NS_ : 
+	NS_DESC_
+	CM_
+	BA_DEF_
+	BA_
+	VAL_
+	CAT_DEF_
+	CAT_
+	FILTER
+	BA_DEF_DEF_
+	EV_DATA_
+	ENVVAR_DATA_
+	SGTYPE_
+	SGTYPE_VAL_
+	BA_DEF_SGTYPE_
+	BA_SGTYPE_
+	SIG_TYPE_REF_
+	VAL_TABLE_
+	SIG_GROUP_
+	SIG_VALTYPE_
+	SIGTYPE_VALTYPE_
+	BO_TX_BU_
+	BA_DEF_REL_
+	BA_REL_
+	BA_DEF_DEF_REL_
+	BU_SG_REL_
+	BU_EV_REL_
+	BU_BO_REL_
+	SG_MUL_VAL_
+
+BS_:
+
+BU_: DSC
+
+
+VAL_TABLE_ DSC_CC_ID 357 "MDM activated." 354 "Start-off assistance inactive!" 353 "Brakes overheated!" 352 "Brakes too hot!" 336 "Yellow TPMS light." 334 "EOL Standardize RPA." 237 "DSC Failure" 236 "ABS and DSC failure." 215 "Yellow DSC light." 184 "DTC activated," 74 "Brake fluid low!" 71 "Replace Brake pads!" 63 "Tyre failure!" 50 "Flat tyre monitor failed." 42 "EBV/CBC failure." 36 "DSC deactivated!" 35 "DSC failed." 24 "DBC failure." ;
+VAL_TABLE_ ST_DSC_CC_MSG 1 "TURN DSC CC MSG ON" 0 "TURN DSC CC MSG OFF" ;
+VAL_TABLE_ HABR 2 "ON" 1 "OFF" ;
+VAL_TABLE_ ST_MOD_DKG 15 "INVALID" 13 "TCT_ES" 12 "TQ_DEC" 6 "N_REGULATION" 4 "TCT_INTV_INC" 3 "TCT_INTV_DEC" 2 "Creep" 0 "No Intervention" ;
+VAL_TABLE_ ST_BRP 3 "Signal Invalid" 2 "No Statement Possible" 1 "Brake Pressure Present" 0 "No Brake Pressure" ;
+VAL_TABLE_ ST_WHL_TOL 2 "SIGNAL INVALID" 1 "ADJUSTMENT DONE" 0 "ADJUSTMENT NOT DONE" ;
+VAL_TABLE_ ST_EDC_MODE 3 "Sport +" 1 "Sport" 0 "Comfort" ;
+VAL_TABLE_ MFUNC_LWK 16384 "Description for the value '0x1F00'" 4096 "Recirculate" 256 "Voice Command" 32 "Down" 22 "Up" 8 "Volume -" 4 "Volume +" 1 "Telephone" 0 "No Button Pressed" ;
+VAL_TABLE_ INTERIOR_LIGHTS 9 "INTERIOR & EXTERIOR LIGHTS ON" 8 "INTERIOR LIGHTS ON" ;
+VAL_TABLE_ ST_HEADLIGHTS 7 "Description for the value '0x6'" 5 "DIP BEAM" 4 "PARK" ;
+VAL_TABLE_ vtST_VEH_DVCO 7 "signal invalid" 3 "vehicle moves, direction n/a" 2 "moves backward, FL/FR backward" 1 "moves forward, FL/FR forward" 0 "vehicle standing" ;
+VAL_TABLE_ vtOP_PUBU_CCTR_ACC 127 "signal invalid" 64 "tap axial, resume" 16 "tap up / down, Off" 8 "overpress backward, lower step" 4 "tap backwards, set / retard" 2 "overpress forward, higher step" 1 "tap forward, set / accelerate" 0 "nothing to do" ;
+VAL_TABLE_ vtST_LDST_GEN 3 "signal invalid" 2 "Utilization rate = 100%" 1 "50% <= Utilization rate < 100%" 0 "0% <= Utilization rate < 50%" ;
+VAL_TABLE_ vtST_GEN 3 "signal invalid" 2 "defective" 1 "in igh-temperature cutoff" 0 "OK" ;
+VAL_TABLE_ vtST_KL 2 "signal invalid" 1 "terminal on" 0 "temrinal off" ;
+VAL_TABLE_ vtST_RCPT_ENG_X 2 "timeout error" 1 "plausibility/activity error" 0 "status ok" ;
+VAL_TABLE_ vtST_TORQ_AVL 15 "signal invalid" 3 "intervention ign & inj not exec." 2 "intervention inj not executed" 1 "intervention ign not executed" 0 "intervention request executed" ;
+VAL_TABLE_ vtST_CTCTR_V 11 "pedal kickdown" 10 "pedal transgress" 9 "pedal pressed" 8 "pedal not pressed" 7 "cc regulation, speed up" 6 "cc regulation, recall" 5 "cc regulation, constant" 4 "cc regulation, retard" 1 "acc regulation, ped pressed" 0 "acc regulation, ped not pressed" ;
+VAL_TABLE_ vtST_CCLT 3 "signal invalid" 2 "closed" 1 "controlled" 0 "disengaged" ;
+VAL_TABLE_ vtST_GR_GRB 15 "signal invalid" 10 "6. gear" 9 "5. gear" 8 "4. gear" 7 "3. gear" 6 "2. gear" 5 "1. gear" 4 "reserved" 3 "P" 2 "R" 1 "N" 0 "reserved" ;
+VAL_TABLE_ vtST_WALI_ENG 3 "signal invalid" 1 "yellow" 0 "off" ;
+VAL_TABLE_ vtST_INTF_CCTRA_KL 4 "error in fgr" 2 "error in acc module" 1 "error in kombi" 0 "okay" ;
+VAL_TABLE_ vtST_UN_V_SPDM 3 "signal invalid" 1 "mph" 0 "km/h" ;
+VAL_TABLE_ vtST_ACC_MOD_DME 7 "signal invalid" 6 "reserved" 5 "driver has stepped over" 4 "brake active" 3 "reserved" 2 "normal" 1 "stand by" 0 "passive" ;
+VAL_TABLE_ vtST_ACC_SWO_SYS_DME 3 "signal invalid" 2 "system okay" 1 "system shutdown, error detected" 0 "reserved" ;
+VAL_TABLE_ vtST_CLCTR 0 "no regulation" 255 "signal invalid" 16 "msr regulation" 8 "hba regulation" 4 "dsc regulation" 2 "asc regulation" 1 "abs regulation" ;
+VAL_TABLE_ vtST_DCRN_AVL 15 "signal invalid" 2 "requirement EMF accepted" 0 "no requirement" ;
+VAL_TABLE_ vtST_DSC 7 "signal invalid" 6 "under voltage" 5 "reserved" 4 "traction mode" 3 "reserved" 2 "faulty" 1 "passive" 0 "all clear" ;
+VAL_TABLE_ vtRPM_IDLG_SPEC 3 "signal invalid" 1 "increased idle rpm required" 0 "no requirement on idle rpm" ;
+VAL_TABLE_ vtSTWA 32769 "right stop" 32767 "left stop" 0 "straight-ahead position" ;
+VAL_TABLE_ vtOBD_ERR 3 "signal invalid" 1 "OBD-relevant error occurred" 0 "no OBD-relevant error present" ;
+VAL_TABLE_ vtST_OTMP_GRB 3 "signal invalid" 2 "cooling stage 2" 1 "cooling stage 1" 0 "no requirement" ;
+VAL_TABLE_ vtST_SWO_KL_30 3 "signal invalid" 2 "shutdown by the PM done" 1 "no shutdown by the PM done" 0 "reserved" ;
+VAL_TABLE_ vtST_BTSW 3 "signal invalid" 1 "battery main switch opens in 5s" 0 "battery main switch closed" ;
+VAL_TABLE_ vtCTR_SLCK 3 "signal invalid" 2 "requirement Shiftlock" 1 "no requirement Shiftlock" 0 "not allowed" ;
+VAL_TABLE_ vtST_SW_WAUP 3 "signal invalid" 2 "EGS forced switching active" 1 "engine warm" 0 "warming up" ;
+VAL_TABLE_ vtST_ENG_RUN 3 "signal invalid" 2 "engine running" 1 "engine starting" 0 "engine off" ;
+VAL_TABLE_ vtST_IDLG_ENG 3 "signal invalid" 1 "not idling" 0 "idling" ;
+VAL_TABLE_ vtRPM_ENG_ERR 3 "signal invalid" 1 "speed sensor defective" 0 "signal RPM_ENG correct" ;
+VAL_TABLE_ vtST_INFS 1 "thrust cutoff active" 0 "no action" ;
+VAL_TABLE_ vtST_SW_LEV_RPM 1 "idle speed < the threshold value" 0 "idle speed > the threshold value" ;
+VAL_TABLE_ vtST_TORQ_TAR 3 "invalid signal" 2 "decrease torque" 1 "increase torque" 0 "no actual torque request" ;
+VAL_TABLE_ DOOR_FLAP_STA 1 "Opened" 0 "Closed" ;
+VAL_TABLE_ BOOT_BONNET_STATUS 4 "Bonnet opened" 1 "Boot opened" ;
+VAL_TABLE_ DR_STATUS 64 "RR door opened" 16 "RL door opened" 4 "FR door opened" 1 "FL door opened" ;
+VAL_TABLE_ GEAR_SELECTION 29699 "D" 27136 "Idle" 22786 "Change to N, down" 18177 "Change to N, up" 11524 "R" 80 "P" ;
+
+
+
+BO_ 884 WHEEL_TOLERANCE_ADJUSTMENT: 5 DSC
+ SG_ ST_WHL_TOL : 32|2@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ WHL_TOL_RRH : 24|8@1- (0.1,0) [0|0] "%" Vector__XXX
+ SG_ WHL_TOL_RLH : 16|8@1- (0.1,0) [-12.8|12.7] "%" Vector__XXX
+ SG_ WHL_TOL_FRH : 8|8@1- (0.1,0) [0|0] "%" Vector__XXX
+ SG_ WHL_TOL_FLH : 0|8@1- (0.1,1) [-11.8|13.7] "%" Vector__XXX
+
+BO_ 422 DISTANCE: 8 DSC
+ SG_ DISTANCE_4_5 : 32|16@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ DISTANCE_2_3 : 16|16@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ DISTANCE_1_0 : 0|16@1+ (1,0) [0|0] "" Vector__XXX
+
+BO_ 690 WHEEL_BRAKE_PRESSURES: 8 DSC
+ SG_ BRP_WHL_RRH : 24|8@1+ (1,0) [0|0] "bar" Vector__XXX
+ SG_ BRP_WHL_RLH : 16|8@1+ (1,0) [0|0] "bar" Vector__XXX
+ SG_ BRP_WHL_FRH : 8|8@1+ (1,0) [0|0] "bar" Vector__XXX
+ SG_ BRP_WHL_FLH : 0|8@1+ (1,0) [0|0] "bar" Vector__XXX
+
+BO_ 414 ST_DSC: 8 DSC
+ SG_ BRP : 48|8@1+ (1,0) [0|0] "bar" Vector__XXX
+ SG_ ST_BRP : 40|2@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ ST_DCRN_AVL : 32|4@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ ST_DSC : 10|3@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ ST_CLCTR : 0|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ BrakeSwitch : 46|1@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ ST_ABS : 8|2@1+ (1,0) [0|0] "" Vector__XXX
+
+BO_ 416 SPEED: 8 DSC
+ SG_ V_VEH : 0|12@1+ (0.1,0) [0.1|350] "km/h"  DSC
+ SG_ ST_VEH_DVCO : 12|3@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ CHKSM_V : 56|8@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ ANGV_YAW_DSC : 40|12@1- (0.05,0) [0|0] "deg/s" Vector__XXX
+ SG_ ALIV_V : 52|4@1+ (1,0) [0|0] "" Vector__XXX
+ SG_ ACLN_VEH_LN_DSC : 16|12@1- (0.025,0) [-51.175|51.175] "m/s2" Vector__XXX
+ SG_ ACLN_VEH_ACRO_DSC : 28|12@1- (0.025,0) [-51.175|51.175] "m/s2"  DSC
+
+BO_ 206 WHEEL_SPEEDS: 8 DSC
+ SG_ V_WHL_RRH : 48|16@1- (0.0625,0) [-300|300] "km/h" Vector__XXX
+ SG_ V_WHL_RLH : 32|16@1- (0.0625,0) [-300|300] "km/h" Vector__XXX
+ SG_ V_WHL_FRH : 16|16@1- (0.0625,0) [-300|300] "km/h" Vector__XXX
+ SG_ V_WHL_FLH : 0|16@1- (0.0625,0) [-300|300] "km/h" Vector__XXX
+
+
+
+CM_ BO_ 884 "";
+CM_ SG_ 884 ST_WHL_TOL "";
+CM_ SG_ 884 WHL_TOL_FLH "% = (100% + WHL_TOL_FLH)";
+CM_ BO_ 422 "";
+CM_ BO_ 690 "";
+CM_ BO_ 414 "";
+CM_ SG_ 414 BRP "Brake Pressure";
+CM_ SG_ 414 ST_BRP "State brake pressure
+";
+CM_ SG_ 414 ST_DCRN_AVL "status deceleration actual-value:";
+CM_ BO_ 416 "";
+CM_ SG_ 416 V_VEH "vehicle speed";
+CM_ BO_ 206 "";
+VAL_ 884 ST_WHL_TOL 2 "SIGNAL INVALID" 1 "ADJUSTMENT DONE" 0 "ADJUSTMENT NOT DONE" ;
+VAL_ 414 ST_BRP 3 "Signal Invalid" 2 "No Statement Possible" 1 "Brake Pressure Present" 0 "No Brake Pressure" ;
+VAL_ 414 ST_DCRN_AVL 3 "HBA Intervention" 1 "DCC Intervention" 15 "signal invalid" 2 "EMF Intervention" 0 "no requirement" ;
+VAL_ 414 ST_DSC 7 "SIGNAL INVALID" 6 "UNDER VOLTAGE" 5 "ABS FAULT" 4 "DTC / MDM" 3 "reserved" 2 "DSC FAULT" 1 "DSC OFF" 0 "DSC ON" ;
+VAL_ 414 ST_CLCTR 64 "DYNO_ACTIVE" 32 "EBV_REGULATION" 0 "no regulation" 255 "signal invalid" 16 "msr regulation" 8 "hba regulation" 4 "DSC/TCS regulation" 2 "ASR regulation" 1 "abs regulation" ;
+VAL_ 414 ST_ABS 1 "Fallback level" 2 "Malfunction" 3 "Invalid signal" 0 "Order" ;
+VAL_ 416 ST_VEH_DVCO 7 "signal invalid" 3 "vehicle moves, direction n/a" 2 "moves backward, FL/FR backward" 1 "moves forward, FL/FR forward" 0 "vehicle standing" ;
+
