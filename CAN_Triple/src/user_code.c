@@ -1,4 +1,4 @@
-/* 
+/*
  * user_code.c - All User Code should be applied here unless specified otherwise.
  *
  * CAN1 is BMW MK60E1/E5 ABS unit
@@ -30,7 +30,7 @@ float V_WHL_RLH;
 // Wheel speed rear right (kph)
 float V_WHL_RRH;
 // Regulation type
-/* 
+/*
 	255 Invalid signal
 	64 Dyno active
 	32 EBV regulation (electronic brake force distribution)
@@ -100,7 +100,8 @@ uint32_t ST_WHL_TOL;
 /* End MK60E1/E5 DBC Declarations */
 
 /* Startup Functions */
-void events_Startup() {
+void events_Startup()
+{
 	setupCANbus(CAN_1, 500000, NORMAL_MODE);
 	setupCANbus(CAN_2, 1000000, NORMAL_MODE);
 	setCAN_Termination(CAN_1, true);
@@ -110,15 +111,18 @@ void events_Startup() {
 }
 /* End Startup Functions */
 
-
-void onSerialReceive(uint8_t *serialMessage) {
-    // What do you want to do when you receive a UART message.. ?
+void onSerialReceive(uint8_t *serialMessage)
+{
+	// What do you want to do when you receive a UART message.. ?
 	// printf("%07.4f message received...\r\n",getTimestamp());
 }
 
-void onReceive(CAN_Message Message) {
-	if (Message.Bus == CAN_1) {
-		if (Message.arbitration_id == 0xCE) {
+void onReceive(CAN_Message Message)
+{
+	if (Message.Bus == CAN_1)
+	{
+		if (Message.arbitration_id == 0xCE)
+		{
 			// Signal: V_WHL_FLH
 			// Start bit: 0, Length: 16, Byte Order: little
 			V_WHL_FLH = process_float_value(((uint32_t)Message.data[1] << 8) | (uint32_t)Message.data[0], 0xFFFF, true, 0.0625, 0, 3);
@@ -136,7 +140,8 @@ void onReceive(CAN_Message Message) {
 			V_WHL_RRH = process_float_value(((uint32_t)Message.data[7] << 8) | (uint32_t)Message.data[6], 0xFFFF, true, 0.0625, 0, 3);
 		}
 
-		if (Message.arbitration_id == 0x19E) {
+		if (Message.arbitration_id == 0x19E)
+		{
 			// Signal: ST_CLCTR
 			// Start bit: 0, Length: 8, Byte Order: little
 			ST_CLCTR = process_raw_value((uint32_t)Message.data[0], 0xFF);
@@ -158,7 +163,8 @@ void onReceive(CAN_Message Message) {
 			BRP = process_raw_value((uint32_t)Message.data[6], 0xFF);
 		}
 
-		if (Message.arbitration_id == 0x1A0) {
+		if (Message.arbitration_id == 0x1A0)
+		{
 			// Signal: V_VEH
 			// Start bit: 0, Length: 12, Byte Order: little
 			V_VEH = process_float_value(((uint32_t)Message.data[1] << 8) | (uint32_t)Message.data[0], 0xFFF, false, 0.1, 0, 3);
@@ -176,7 +182,8 @@ void onReceive(CAN_Message Message) {
 			ANGV_YAW_DSC = process_float_value(((uint32_t)Message.data[6] << 8) | (uint32_t)Message.data[5], 0xFFF, true, 0.05, 0, 3);
 		}
 
-		if (Message.arbitration_id == 0x2B2) {
+		if (Message.arbitration_id == 0x2B2)
+		{
 			// Signal: BRP_WHL_FLH
 			// Start bit: 0, Length: 8, Byte Order: little
 			BRP_WHL_FLH = process_raw_value((uint32_t)Message.data[0], 0xFF);
@@ -194,7 +201,8 @@ void onReceive(CAN_Message Message) {
 			BRP_WHL_RRH = process_raw_value((uint32_t)Message.data[3], 0xFF);
 		}
 
-		if (Message.arbitration_id == 0x374) {
+		if (Message.arbitration_id == 0x374)
+		{
 			// Signal: WHL_TOL_FLH
 			// Start bit: 0, Length: 8, Byte Order: little
 			WHL_TOL_FLH = process_float_value((uint32_t)Message.data[0], 0xFF, true, 0.1, 1, 3);
@@ -218,76 +226,78 @@ void onReceive(CAN_Message Message) {
 	}
 
 	// Haltech / AIM on CAN 2
-	if (Message.Bus == CAN_2) {
-
+	if (Message.Bus == CAN_2)
+	{
 	}
-	
-	if (Message.Bus == CAN_3) {
 
+	if (Message.Bus == CAN_3)
+	{
 	}
 }
 
 /* Run 2000Hz Functions here */
-void events_2000Hz() {
-	
+void events_2000Hz()
+{
 }
 
 /* Run 1000Hz Functions here */
-void events_1000Hz() {
-
+void events_1000Hz()
+{
 }
 
 /* Run 500Hz Functions here */
-void events_500Hz() {
-
+void events_500Hz()
+{
 }
 
 /* Run 200Hz Functions here */
-void events_200Hz() {
-
+void events_200Hz()
+{
 }
 
 /* Run 100Hz Functions here */
-void events_100Hz() {
-
+void events_100Hz()
+{
 }
 
 /* Run 50Hz Functions here */
-void events_50Hz() {
-
+void events_50Hz()
+{
 }
 
 /* Run 20Hz Functions here */
-void events_20Hz() {
-	
+void events_20Hz()
+{
 }
 
 /* Run 10Hz Functions here */
-void events_10Hz() {
-
+void events_10Hz()
+{
 }
 
 /* Run 5Hz Functions here */
-void events_5Hz() {
-
+void events_5Hz()
+{
 }
 
 /* Run 2Hz Functions here */
-void events_2Hz() {
-
+void events_2Hz()
+{
 }
 
 /* Run 1Hz Functions here */
-void events_1Hz() {
+void events_1Hz()
+{
 	haltechSendKeepAlive();
 }
 
 /* Run Shutdown Functions here */
-void events_Shutdown() {
-
+void events_Shutdown()
+{
 }
 
-void haltechSendKeepAlive() {
+void haltechSendKeepAlive()
+{
 	/*
 		0:7 - 0:4 => Status (1 = In Firmware)
 		0:3 => USB Connected (0 = False)
@@ -302,7 +312,7 @@ void haltechSendKeepAlive() {
 
 		4:7 - 4:0 => Firmware Release Version (0)
 	*/
-	uint8_t keepAliveMessage = { 0X10, 0x01, 0x2A, 0x00, 0x00, 0x00, 0x00, 0x00 };
+	uint8_t keepAliveMessage = {0X10, 0x01, 0x2A, 0x00, 0x00, 0x00, 0x00, 0x00};
 
 	// PD16 A
 	send_message(CAN_2, false, 0x6D5, 8, keepAliveMessage);
