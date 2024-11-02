@@ -4,6 +4,8 @@
  * CAN1 is BMW MK60E1/E5 ABS unit
  * CAN2 is Haltech Nexus R3 PDM and AIM MXG2 dash
  * 		https://support.haltech.com/portal/en/kb/articles/haltech-can-pd-16-protocol
+ * 		https://support.haltech.com/portal/en/kb/articles/haltech-can-ecu-broadcast-protocol
+ * 		https://support.haltech.com/portal/en/kb/articles/haltech-can-protocol-specification
  * CAN3 is currently unused
  */
 
@@ -19,6 +21,14 @@
 /* Variable Declarations */
 uint32_t serialnumber;
 CAN_ErrorCounts errors;
+
+/* Raw MK60E1/E5 Message Declarations */
+uint8_t RAW_CE;
+uint8_t RAW_19E;
+uint8_t RAW_1A0;
+uint8_t RAW_2B2;
+uint8_t RAW_374;
+/* End Raw MK60E1/E5 Message Declarations */
 
 /* MK60E1/E5 DBC Declarations */
 // Wheel speed front left (kph)
@@ -113,8 +123,6 @@ void events_Startup()
 
 void onSerialReceive(uint8_t *serialMessage)
 {
-	// What do you want to do when you receive a UART message.. ?
-	// printf("%07.4f message received...\r\n",getTimestamp());
 }
 
 void onReceive(CAN_Message Message)
@@ -124,6 +132,8 @@ void onReceive(CAN_Message Message)
 		// Wheel speeds - retransmit for Haltech.  SPI x 4
 		if (Message.arbitration_id == 0xCE)
 		{
+			RAW_CE = Message.data;
+
 			// Signal: V_WHL_FLH
 			// Start bit: 0, Length: 16, Byte Order: little
 			V_WHL_FLH = process_float_value(((uint32_t)Message.data[1] << 8) | (uint32_t)Message.data[0], 0xFFFF, true, 0.0625, 0, 3);
@@ -144,6 +154,8 @@ void onReceive(CAN_Message Message)
 		// System states - Retransmit BRP for Haltech and everything for AIM. AVI x 1
 		if (Message.arbitration_id == 0x19E)
 		{
+			RAW_19E = Message.data;
+
 			// Signal: ST_CLCTR
 			// Start bit: 0, Length: 8, Byte Order: little
 			ST_CLCTR = process_raw_value((uint32_t)Message.data[0], 0xFF);
@@ -165,9 +177,11 @@ void onReceive(CAN_Message Message)
 			BRP = process_raw_value((uint32_t)Message.data[6], 0xFF);
 		}
 
-		// Vehicle speed, gforce, yaw - retransmit to Haltech. AVI x 3
+		// Vehicle speed, gforce, yaw - retransmit to AIM
 		if (Message.arbitration_id == 0x1A0)
 		{
+			RAW_1A0 = Message.data;
+
 			// Signal: V_VEH
 			// Start bit: 0, Length: 12, Byte Order: little
 			V_VEH = process_float_value(((uint32_t)Message.data[1] << 8) | (uint32_t)Message.data[0], 0xFFF, false, 0.1, 0, 3);
@@ -185,9 +199,11 @@ void onReceive(CAN_Message Message)
 			ANGV_YAW_DSC = process_float_value(((uint32_t)Message.data[6] << 8) | (uint32_t)Message.data[5], 0xFFF, true, 0.05, 0, 3);
 		}
 
-		// Brake pressure - retransmit for Haltech
+		// Brake pressure - retransmit for Haltech. AVI x 4
 		if (Message.arbitration_id == 0x2B2)
 		{
+			RAW_2B2 = Message.data;
+
 			// Signal: BRP_WHL_FLH
 			// Start bit: 0, Length: 8, Byte Order: little
 			BRP_WHL_FLH = process_raw_value((uint32_t)Message.data[0], 0xFF);
@@ -208,6 +224,8 @@ void onReceive(CAN_Message Message)
 		// Wheel tolerance, retransmit for AIM
 		if (Message.arbitration_id == 0x374)
 		{
+			RAW_374 = Message.data;
+
 			// Signal: WHL_TOL_FLH
 			// Start bit: 0, Length: 8, Byte Order: little
 			WHL_TOL_FLH = process_float_value((uint32_t)Message.data[0], 0xFF, true, 0.1, 1, 3);
@@ -261,6 +279,7 @@ void events_200Hz()
 /* Run 100Hz Functions here */
 void events_100Hz()
 {
+	aimSendRebroadcast();
 }
 
 /* Run 50Hz Functions here */
@@ -301,6 +320,15 @@ void events_Shutdown()
 {
 }
 
+void aimSendRebroadcast()
+{
+	send_message(CAN_2, false, 0xCE, 8, RAW_CE);
+	send_message(CAN_2, false, 0x19E, 8, RAW_19E);
+	send_message(CAN_2, false, 0x1A0, 8, RAW_1A0);
+	send_message(CAN_2, false, 0x2B2, 8, RAW_2B2);
+	send_message(CAN_2, false, 0x374, 8, RAW_374);
+}
+
 void haltechSendKeepAlive()
 {
 	/*
@@ -318,6 +346,8 @@ void haltechSendKeepAlive()
 		2:7 - 2:0 => Firmware Minor Version (42)
 		3:7 - 3:0 => Firmware Bugfix Version (0)
 		4:7 - 4:0 => Firmware Release Version (0)
+
+		Each PD16 gets us 4x SPI and 4x AVI
 	*/
 	uint8_t keepAliveMessage = {0X10, 0x01, 0x2A, 0x00, 0x00, 0x00, 0x00, 0x00};
 	send_message(CAN_2, false, 0x6D5, 8, keepAliveMessage);
