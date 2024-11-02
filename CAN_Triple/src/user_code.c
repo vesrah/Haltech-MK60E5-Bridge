@@ -1,7 +1,7 @@
 /*
  * user_code.c - All User Code should be applied here unless specified otherwise.
  *
- * CAN1 is BMW MK60E1/E5 ABS unit
+ * CAN1 is BMW MK60E1 aka MK60psi / MK60E5 ABS unit
  * CAN2 is Haltech Nexus R3 PDM and AIM MXG2 dash
  * 		https://support.haltech.com/portal/en/kb/articles/haltech-can-pd-16-protocol
  * 		https://support.haltech.com/portal/en/kb/articles/haltech-can-ecu-broadcast-protocol
@@ -21,6 +21,7 @@
 /* Variable Declarations */
 uint32_t serialnumber;
 CAN_ErrorCounts errors;
+/* End Variable Declarations */
 
 /* Raw MK60E1/E5 Message Declarations */
 uint8_t RAW_CE;
@@ -28,6 +29,7 @@ uint8_t RAW_19E;
 uint8_t RAW_1A0;
 uint8_t RAW_2B2;
 uint8_t RAW_374;
+bool hasBrakePressure = false;
 /* End Raw MK60E1/E5 Message Declarations */
 
 /* MK60E1/E5 DBC Declarations */
@@ -84,13 +86,13 @@ float ACLN_VEH_LN_DSC;
 float ACLN_VEH_ACRO_DSC;
 // Yaw rate (deg/s)
 float ANGV_YAW_DSC;
-// Brake pressure front left (bar, probably shouldn't be there in E1)
+// Brake pressure front left (bar; doesn't work in E1)
 uint32_t BRP_WHL_FLH;
-// Brake pressure front right (bar, probably shouldn't be there in E1)
+// Brake pressure front right (bar; doesn't work in E1)
 uint32_t BRP_WHL_FRH;
-// Brake pressure rear left (bar, probably shouldn't be there in E1)
+// Brake pressure rear left (bar; doesn't work in E1)
 uint32_t BRP_WHL_RLH;
-// Brake pressure rear right (bar, probably shouldn't be there in E1)
+// Brake pressure rear right (bar; doesn't work in E1)
 uint32_t BRP_WHL_RRH;
 // Wheel tolerance adjustment front left (%)
 float WHL_TOL_FLH;
@@ -202,6 +204,8 @@ void onReceive(CAN_Message Message)
 		// Brake pressure - retransmit for Haltech. AVI x 4
 		if (Message.arbitration_id == 0x2B2)
 		{
+			if (!hasBrakePressure) { hasBrakePressure = true; }
+
 			RAW_2B2 = Message.data;
 
 			// Signal: BRP_WHL_FLH
@@ -325,8 +329,9 @@ void aimSendRebroadcast()
 	send_message(CAN_2, false, 0xCE, 8, RAW_CE);
 	send_message(CAN_2, false, 0x19E, 8, RAW_19E);
 	send_message(CAN_2, false, 0x1A0, 8, RAW_1A0);
-	send_message(CAN_2, false, 0x2B2, 8, RAW_2B2);
+	if (hasBrakePressure) { send_message(CAN_2, false, 0x2B2, 8, RAW_2B2); }
 	send_message(CAN_2, false, 0x374, 8, RAW_374);
+
 }
 
 void haltechSendKeepAlive()
