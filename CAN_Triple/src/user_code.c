@@ -131,7 +131,7 @@ void onReceive(CAN_Message Message)
 {
 	if (Message.Bus == CAN_1)
 	{
-		// Wheel speeds - retransmit for Haltech.  SPI x 4
+		// Wheel speeds
 		if (Message.arbitration_id == 0xCE)
 		{
 			RAW_CE = Message.data;
@@ -153,7 +153,7 @@ void onReceive(CAN_Message Message)
 			V_WHL_RRH = process_float_value(((uint32_t)Message.data[7] << 8) | (uint32_t)Message.data[6], 0xFFFF, true, 0.0625, 0, 3);
 		}
 
-		// System states - Retransmit BRP for Haltech and everything for AIM. AVI x 1
+		// System state
 		if (Message.arbitration_id == 0x19E)
 		{
 			RAW_19E = Message.data;
@@ -179,7 +179,7 @@ void onReceive(CAN_Message Message)
 			BRP = process_raw_value((uint32_t)Message.data[6], 0xFF);
 		}
 
-		// Vehicle speed, gforce, yaw - retransmit to AIM
+		// Vehicle speed, gforce, yaw
 		if (Message.arbitration_id == 0x1A0)
 		{
 			RAW_1A0 = Message.data;
@@ -201,7 +201,7 @@ void onReceive(CAN_Message Message)
 			ANGV_YAW_DSC = process_float_value(((uint32_t)Message.data[6] << 8) | (uint32_t)Message.data[5], 0xFFF, true, 0.05, 0, 3);
 		}
 
-		// Brake pressure - retransmit for Haltech. AVI x 4
+		// Brake pressure
 		if (Message.arbitration_id == 0x2B2)
 		{
 			if (!hasBrakePressure) { hasBrakePressure = true; }
@@ -225,7 +225,7 @@ void onReceive(CAN_Message Message)
 			BRP_WHL_RRH = process_raw_value((uint32_t)Message.data[3], 0xFF);
 		}
 
-		// Wheel tolerance, retransmit for AIM
+		// Wheel tolerance
 		if (Message.arbitration_id == 0x374)
 		{
 			RAW_374 = Message.data;
@@ -330,7 +330,9 @@ void aimSendRebroadcast()
 	send_message(CAN_2, false, 0x19E, 8, RAW_19E);
 	send_message(CAN_2, false, 0x1A0, 8, RAW_1A0);
 	if (hasBrakePressure) { send_message(CAN_2, false, 0x2B2, 8, RAW_2B2); }
-	send_message(CAN_2, false, 0x374, 8, RAW_374);
+	// 374 is used by Haltech for EGT 5 - 8 so we don't want to reuse it.
+	// This means it needs to be updated from 0x374 to 0xCF from the default E90 in the AIM config.
+	send_message(CAN_2, false, 0xCF, 8, RAW_374);
 
 }
 
