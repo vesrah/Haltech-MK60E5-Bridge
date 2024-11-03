@@ -24,11 +24,11 @@ CAN_ErrorCounts errors;
 /* End Variable Declarations */
 
 /* Raw MK60E1/E5 Message Declarations */
-uint8_t RAW_CE;
-uint8_t RAW_19E;
-uint8_t RAW_1A0;
-uint8_t RAW_2B2;
-uint8_t RAW_374;
+uint8_t RAW_CE[8];
+uint8_t RAW_19E[8];
+uint8_t RAW_1A0[8];
+uint8_t RAW_2B2[8];
+uint8_t RAW_374[8];
 bool hasBrakePressure = false;
 /* End Raw MK60E1/E5 Message Declarations */
 
@@ -111,6 +111,134 @@ float WHL_TOL_RRH;
 uint32_t ST_WHL_TOL;
 /* End MK60E1/E5 DBC Declarations */
 
+void aimSendRebroadcast()
+{
+    send_message(CAN_2, false, 0xCE, 8, RAW_CE);
+    send_message(CAN_2, false, 0x19E, 8, RAW_19E);
+    send_message(CAN_2, false, 0x1A0, 8, RAW_1A0);
+
+    if (hasBrakePressure)
+        send_message(CAN_2, false, 0x2B2, 8, RAW_2B2);
+
+    // 374 is used by Haltech for EGT 5 - 8 so we don't want to reuse it.
+    // This means it needs to be updated from 0x374 to 0xCF from the default E90 in the AIM config.
+    send_message(CAN_2, false, 0xCF, 8, RAW_374);
+}
+
+void haltechSendKeepAlive()
+{
+    /*
+        2hz
+        PD16 A: 0x6D5
+        PD16 B: 0x6DD
+        PD16 C: 0x6E5
+        PD16 D: 0x6ED
+
+        0:7 - 0:4 => Status (1 = In Firmware)
+        0:3 => USB Connected (0 = False)
+        0:1 => ID Conflict (0 = False)
+        1:7 - 1:3 => Boot Version (0)
+        1:1 - 1:0 => Firmware Major Version (1)
+        2:7 - 2:0 => Firmware Minor Version (42)
+        3:7 - 3:0 => Firmware Bugfix Version (0)
+        4:7 - 4:0 => Firmware Release Version (0)
+
+        Each PD16 gets us 4x SPI and 4x AVI
+    */
+    uint8_t keepAliveMessage[8] = {0X10, 0x01, 0x2A, 0x00, 0x00, 0x00, 0x00, 0x00};
+    send_message(CAN_2, false, 0x6D5, 8, keepAliveMessage);
+    send_message(CAN_2, false, 0x6DD, 8, keepAliveMessage);
+}
+
+uint8_t* haltechGetAviData(uint8_t aviId, uint16_t voltage)
+{
+    static uint8_t data[4];
+
+    // AVI has a mux id of 4
+    data[0] = (4 << 4) | (aviId - 1);
+
+    // Set to on
+    data[1] = 1;
+
+    // Set voltage
+    data[2] = (voltage >> 8) & 0xFF;
+    data[3] = voltage & 0xFF;
+
+    return data;
+}
+
+uint16_t haltechGetAviBoolVoltage(bool value)
+{
+    return value ? 5000 : 0;
+}
+
+uint16_t haltechGetAviScaledVoltage(uint16_t value, uint16_t minimumValue, uint16_t maximumValue)
+{
+    if (minimumValue >= maximumValue) return 0;
+    uint32_t scaledValue = ((uint32_t)(value - minimumValue) * 5000) / (maximumValue - minimumValue);
+    return (scaledValue > 5000) ? 5000 : (uint16_t)scaledValue;
+}
+
+uint8_t* haltechGetSpiData(uint8_t spiId, uint16_t frequency)
+{
+    static uint8_t data[8];
+
+    // SPI has a mux id of 3
+    data[0] = (3 << 4) | (spiId - 1);
+
+    // Set to on
+    data[1] = 1;
+
+    // Set a default voltage of 2.5v
+    uint16_t voltage = 2500;
+    data[2] = (voltage >> 8) & 0xFF;
+    data[3] = voltage & 0xFF;
+
+    // Set a default duty cycle of 100%
+    uint16_t duty_cycle = 1000;
+    data[4] = (duty_cycle >> 8) & 0xFF;
+    data[5] = duty_cycle & 0xFF;
+
+    // Set the frequency
+    data[6] = (frequency >> 8) & 0xFF;
+    data[7] = frequency & 0xFF;
+
+    return data;
+}
+
+void haltechSendAviData()
+{
+    /*
+        20hz
+        PD16 A: 0x6D3
+        PD16 B: 0x6DB
+        PD16 C: 0x6E3
+        PD16 D: 0x6EB
+    */
+
+    // Brake switch
+    send_message(CAN_2, false, 0x6D3, 4, haltechGetAviData(1, haltechGetAviBoolVoltage(BrakeSwitch == 1)));
+    // Taking a guess at 260 bar max for the overall brake pressure sensor, untested
+    send_message(CAN_2, false, 0x6D3, 4, haltechGetAviData(2, haltechGetAviScaledVoltage(BRP, 0, 260)));
+    // Abs failure state
+    send_message(CAN_2, false, 0x6D3, 4, haltechGetAviData(3, haltechGetAviScaledVoltage(ST_ABS, 0, 3)));
+}
+
+void haltechSendSpiData()
+{
+    /*
+        20hz
+        PD16 A: 0x6D3
+        PD16 B: 0x6DB
+        PD16 C: 0x6E3
+        PD16 D: 0x6EB
+    */
+    send_message(CAN_2, false, 0x6D3, 8, haltechGetSpiData(1, V_WHL_FLH * 10));
+    send_message(CAN_2, false, 0x6D3, 8, haltechGetSpiData(1, V_WHL_FRH * 10));
+    send_message(CAN_2, false, 0x6D3, 8, haltechGetSpiData(1, V_WHL_RLH * 10));
+    send_message(CAN_2, false, 0x6D3, 8, haltechGetSpiData(1, V_WHL_RRH * 10));
+}
+
 /* Startup Functions */
 void events_Startup()
 {
@@ -134,7 +262,7 @@ void onReceive(CAN_Message Message)
         // Wheel speeds
         if (Message.arbitration_id == 0xCE)
         {
-            RAW_CE = Message.data;
+            memcpy(RAW_CE, Message.data, sizeof(Message.data));
 
             // Signal: V_WHL_FLH
             // Start bit: 0, Length: 16, Byte Order: little
@@ -156,7 +284,7 @@ void onReceive(CAN_Message Message)
         // System state
         if (Message.arbitration_id == 0x19E)
         {
-            RAW_19E = Message.data;
+            memcpy(RAW_19E, Message.data, sizeof(Message.data));
 
             // Signal: ST_CLCTR
             // Start bit: 0, Length: 8, Byte Order: little
@@ -182,7 +310,7 @@ void onReceive(CAN_Message Message)
         // Vehicle speed, gforce, yaw
         if (Message.arbitration_id == 0x1A0)
         {
-            RAW_1A0 = Message.data;
+            memcpy(RAW_1A0, Message.data, sizeof(Message.data));
 
             // Signal: V_VEH
             // Start bit: 0, Length: 12, Byte Order: little
@@ -204,12 +332,9 @@ void onReceive(CAN_Message Message)
         // Brake pressure
         if (Message.arbitration_id == 0x2B2)
         {
-            if (!hasBrakePressure)
-            {
-                hasBrakePressure = true;
-            }
+            if (!hasBrakePressure) { hasBrakePressure = true; }
 
-            RAW_2B2 = Message.data;
+            memcpy(RAW_2B2, Message.data, sizeof(Message.data));
 
             // Signal: BRP_WHL_FLH
             // Start bit: 0, Length: 8, Byte Order: little
@@ -231,7 +356,7 @@ void onReceive(CAN_Message Message)
         // Wheel tolerance
         if (Message.arbitration_id == 0x374)
         {
-            RAW_374 = Message.data;
+            memcpy(RAW_374, Message.data, sizeof(Message.data));
 
             // Signal: WHL_TOL_FLH
             // Start bit: 0, Length: 8, Byte Order: little
@@ -325,136 +450,4 @@ void events_1Hz()
 /* Run Shutdown Functions here */
 void events_Shutdown()
 {
-}
-
-void aimSendRebroadcast()
-{
-    send_message(CAN_2, false, 0xCE, 8, RAW_CE);
-    send_message(CAN_2, false, 0x19E, 8, RAW_19E);
-    send_message(CAN_2, false, 0x1A0, 8, RAW_1A0);
-
-    if (hasBrakePressure)
-        send_message(CAN_2, false, 0x2B2, 8, RAW_2B2);
-
-    // 374 is used by Haltech for EGT 5 - 8 so we don't want to reuse it.
-    // This means it needs to be updated from 0x374 to 0xCF from the default E90 in the AIM config.
-    send_message(CAN_2, false, 0xCF, 8, RAW_374);
-}
-
-void haltechSendKeepAlive()
-{
-    /*
-        2hz
-        PD16 A: 0x6D5
-        PD16 B: 0x6DD
-        PD16 C: 0x6E5
-        PD16 D: 0x6ED
-
-        0:7 - 0:4 => Status (1 = In Firmware)
-        0:3 => USB Connected (0 = False)
-        0:1 => ID Conflict (0 = False)
-        1:7 - 1:3 => Boot Version (0)
-        1:1 - 1:0 => Firmware Major Version (1)
-        2:7 - 2:0 => Firmware Minor Version (42)
-        3:7 - 3:0 => Firmware Bugfix Version (0)
-        4:7 - 4:0 => Firmware Release Version (0)
-
-        Each PD16 gets us 4x SPI and 4x AVI
-    */
-    uint8_t keepAliveMessage = {0X10, 0x01, 0x2A, 0x00, 0x00, 0x00, 0x00, 0x00};
-    send_message(CAN_2, false, 0x6D5, 8, keepAliveMessage);
-    send_message(CAN_2, false, 0x6DD, 8, keepAliveMessage);
-}
-
-void haltechSendAviData()
-{
-    /*
-        20hz
-        PD16 A: 0x6D3
-        PD16 B: 0x6DB
-        PD16 C: 0x6E3
-        PD16 D: 0x6EB
-    */
-
-    // Brake switch
-    send_message(CAN_2, false, 0x6D3, 4, haltechGetAviData(1, haltechGetAviBoolVoltage(BrakeSwitch == 1)));
-    // Taking a guess at 260 bar max for the overall brake pressure sensor, untested
-    send_message(CAN_2, false, 0x6D3, 4, haltechGetAviData(2, haltechGetAviScaledVoltage(BRP, 0, 260)));
-    // Abs failure state
-    send_message(CAN_2, false, 0x6D3, 4, haltechGetAviData(3, haltechGetAviScaledVoltage(ST_ABS, 0, 3)));
-}
-
-void haltechSendSpiData()
-{
-    /*
-        20hz
-        PD16 A: 0x6D3
-        PD16 B: 0x6DB
-        PD16 C: 0x6E3
-        PD16 D: 0x6EB
-    */
-    send_message(CAN_2, false, 0x6D3, 8, haltechGetSpiData(1, V_WHL_FLH * 10));
-    send_message(CAN_2, false, 0x6D3, 8, haltechGetSpiData(1, V_WHL_FRH * 10));
-    send_message(CAN_2, false, 0x6D3, 8, haltechGetSpiData(1, V_WHL_RLH * 10));
-    send_message(CAN_2, false, 0x6D3, 8, haltechGetSpiData(1, V_WHL_RRH * 10));
-}
-
-uint8_t haltechGetAviData(uint8_t aviId, uint16_t voltage)
-{
-    static uint8_t data[4];
-
-    // AVI has a mux id of 4
-    data[0] = (4 << 4) | (aviId - 1);
-
-    // Set to on
-    data[1] = 1;
-
-    // Set voltage
-    data[2] = (voltage >> 8) & 0xFF;
-    data[3] = voltage & 0xFF;
-
-    return data;
-}
-
-uint16_t haltechGetAviBoolVoltage(bool value)
-{
-    return value ? 5000 : 0;
-}
-
-uint16_t haltechGetAviScaledVoltage(uint16_t value, uint16_t minimumValue, uint16_t maximumValue)
-{
-    if (minimumValue == maximumValue)
-        return 0;
-
-    int16_t scaledValue = ((value - minimumValue) * 5000) / (maximumValue - minimumValue);
-
-    if (scaledValue > 5000)
-        scaledValue = 5000;
-
-    return scaledValue;
-}
-
-uint8_t haltechGetSpiData(uint8_t spiId, uint16_t frequency)
-{
-    static uint8_t data[8];
-
-    // SPI has a mux id of 3
-    data[0] = (3 << 4) | (spiId - 1);
-
-    // Set to on
-    data[1] = 1;
-
-    // Set a default voltage of 2.5v
-    uint16_t voltage = 2500;
-    data[2] = (voltage >> 8) & 0xFF;
-    data[3] = voltage & 0xFF;
-
-    // Set a default duty cycle of 100%
-    uint16_t duty_cycle = 1000;
-    data[4] = (duty_cycle >> 8) & 0xFF;
-    data[5] = duty_cycle & 0xFF;
-
-    // Set the frequency
-    data[6] = (frequency >> 8) & 0xFF;
-    data[7] = frequency & 0xFF;
 }
