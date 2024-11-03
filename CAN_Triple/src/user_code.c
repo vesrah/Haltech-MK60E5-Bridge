@@ -393,10 +393,10 @@ void haltechSendSpiData()
         PD16 C: 0x6E3
         PD16 D: 0x6EB
     */
-    // V_WHL_FLH
-    // V_WHL_FRH
-    // V_WHL_RLH
-    // V_WHL_RRH
+    send_message(CAN_2, false, 0x6D3, 8, haltechGetSpiData(1, V_WHL_FLH * 10));
+    send_message(CAN_2, false, 0x6D3, 8, haltechGetSpiData(1, V_WHL_FRH * 10));
+    send_message(CAN_2, false, 0x6D3, 8, haltechGetSpiData(1, V_WHL_RLH * 10));
+    send_message(CAN_2, false, 0x6D3, 8, haltechGetSpiData(1, V_WHL_RRH * 10));
 }
 
 uint8_t haltechGetAviData(uint8_t aviId, uint16_t voltage)
