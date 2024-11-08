@@ -361,7 +361,7 @@ void onReceive(CAN_Message Message)
 
         // Bosch Motorsport Steering Wheel Angle Sensor LWS
         if (Message.arbitration_id == 0x2B0) {
-            memcopy(RAW_2B0, Message.data, sizeof(Message.data));
+            memcpy(RAW_2B0, Message.data, sizeof(Message.data));
 
             // Signal: LWS_ANGLE
             // Start bit: 0, Length: 16, Byte Order: little
