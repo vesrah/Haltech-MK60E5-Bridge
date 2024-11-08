@@ -1,7 +1,7 @@
 /*
  * user_code.c - All User Code should be applied here unless specified otherwise.
  *
- * CAN1 is BMW MK60E1 aka MK60psi / MK60E5 ABS unit
+ * CAN1 is BMW MK60E1 aka MK60psi / MK60E5 ABS unit and Bosch Motorsport Steering Wheel Angle Sensor LWS
  * CAN2 is Haltech Nexus R3 PDM and AIM MXG2 dash
  * 		https://support.haltech.com/portal/en/kb/articles/haltech-can-pd-16-protocol
  * 		https://support.haltech.com/portal/en/kb/articles/haltech-can-ecu-broadcast-protocol
@@ -22,6 +22,35 @@
 uint32_t serialnumber;
 CAN_ErrorCounts errors;
 /* End Variable Declarations */
+
+/* Raw Bosch Motorsport Steering Wheel Angle Sensor LWS Declarations */
+uint8_t RAW_2B0[8];
+/* End Raw Bosch Motorsport Steering Wheel Angle Sensor LWS Declarations */
+
+/* Bosch Motorsport Steering Wheel Angle Sensor LWS Declarations */
+// Steering wheel angle (deg)
+float LWS_ANGLE;
+// Steering wheel angle change speed (deg/s)
+uint32_t LWS_SPEED;
+// Failure status
+/*
+    1 Sensor valid
+    0 Sensor invalid, fault
+*/
+uint32_t OK;
+// Calibration status
+/*
+    1 Sensor calibrated
+    0 Sensor not calibrated
+*/
+uint32_t CAL;
+// Trimming status
+/*
+    1 Sensor trimmed
+    0 Sensor not trimmed
+*/
+uint32_t TRIM;
+/* Raw Bosch Motorsport Steering Wheel Angle Sensor LWS Declarations */
 
 /* Raw MK60E1/E5 Message Declarations */
 uint8_t RAW_CE[8];
@@ -116,6 +145,7 @@ void aimSendRebroadcast()
     send_message(CAN_2, false, 0xCE, 8, RAW_CE);
     send_message(CAN_2, false, 0x19E, 8, RAW_19E);
     send_message(CAN_2, false, 0x1A0, 8, RAW_1A0);
+    send_message(CAN_2, false, 0x2B0, 8, RAW_2B0);
 
     if (hasBrakePressure)
         send_message(CAN_2, false, 0x2B2, 8, RAW_2B2);
@@ -259,7 +289,7 @@ void onReceive(CAN_Message Message)
 {
     if (Message.Bus == CAN_1)
     {
-        // Wheel speeds
+        // MK60E1/E5 Wheel speeds
         if (Message.arbitration_id == 0xCE)
         {
             memcpy(RAW_CE, Message.data, sizeof(Message.data));
@@ -281,7 +311,7 @@ void onReceive(CAN_Message Message)
             V_WHL_RRH = process_float_value(((uint32_t)Message.data[7] << 8) | (uint32_t)Message.data[6], 0xFFFF, true, 0.0625, 0, 3);
         }
 
-        // System state
+        // MK60E1/E5 System state
         if (Message.arbitration_id == 0x19E)
         {
             memcpy(RAW_19E, Message.data, sizeof(Message.data));
@@ -329,7 +359,32 @@ void onReceive(CAN_Message Message)
             ANGV_YAW_DSC = process_float_value(((uint32_t)Message.data[6] << 8) | (uint32_t)Message.data[5], 0xFFF, true, 0.05, 0, 3);
         }
 
-        // Brake pressure
+        // Bosch Motorsport Steering Wheel Angle Sensor LWS
+        if (Message.arbitration_id == 0x2B0) {
+            memcopy(RAW_2B0, Message.data, sizeof(Message.data));
+
+            // Signal: LWS_ANGLE
+            // Start bit: 0, Length: 16, Byte Order: little
+            LWS_ANGLE = process_float_value(((uint32_t)Message.data[1] << 8) | (uint32_t)Message.data[0], 0xFFFF, true, 0.1, 0, 3);
+
+            // Signal: LWS_SPEED
+            // Start bit: 16, Length: 8, Byte Order: little
+            LWS_SPEED = process_unsigned_int_value((uint32_t)Message.data[2], 0xFF, 4, 0);
+
+            // Signal: OK
+            // Start bit: 24, Length: 1, Byte Order: little
+            OK = process_raw_value((uint32_t)Message.data[3], 0x1);
+
+            // Signal: CAL
+            // Start bit: 25, Length: 1, Byte Order: little
+            CAL = process_raw_value((uint32_t)Message.data[3], 0x2);
+
+            // Signal: TRIM
+            // Start bit: 26, Length: 1, Byte Order: little
+            TRIM = process_raw_value((uint32_t)Message.data[3], 0x4);
+		}
+
+        // MK60E5 Brake pressure
         if (Message.arbitration_id == 0x2B2)
         {
             if (!hasBrakePressure) { hasBrakePressure = true; }
@@ -353,7 +408,7 @@ void onReceive(CAN_Message Message)
             BRP_WHL_RRH = process_raw_value((uint32_t)Message.data[3], 0xFF);
         }
 
-        // Wheel tolerance
+        // MK60E1/E5 Wheel tolerance
         if (Message.arbitration_id == 0x374)
         {
             memcpy(RAW_374, Message.data, sizeof(Message.data));
