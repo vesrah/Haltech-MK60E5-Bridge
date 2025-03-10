@@ -32,8 +32,6 @@ void events_Startup()
     setCAN_Termination(CAN_2, false);
     startCANbus(CAN_1);
     startCANbus(CAN_2);
-
-
 }
 /* End Startup Functions */
 
